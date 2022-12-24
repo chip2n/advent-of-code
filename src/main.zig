@@ -18,9 +18,8 @@ pub fn day1a(input_path: []const u8) !u32 {
     var buf: [128]u8 = undefined;
     var current: u32 = 0;
     var max: u32 = 0;
-    var i: usize = 0;
-    var reader = file.reader();
-    while (true) : (i += 1) {
+     var reader = file.reader();
+    while (true) {
         var line = try reader.readUntilDelimiterOrEof(&buf, '\n');
         if (line == null or line.?.len == 0) {
             if (current > max) {
