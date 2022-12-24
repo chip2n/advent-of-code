@@ -8,7 +8,7 @@ pub fn main() !void {
     const time_start_b = std.time.microTimestamp();
     const result_b = try day1b("/Users/andreas/dev/aoc-2022/src/input-1");
     const time_b = std.time.microTimestamp() - time_start_b;
-    std.log.info("A: {} ({}μs), B: {} ({}μs)", .{ result_a, time_a, result_b, time_b });
+    std.debug.print("A: {} ({}μs), B: {} ({}μs)", .{ result_a, time_a, result_b, time_b });
 }
 
 pub fn day1a(input_path: []const u8) !u32 {
@@ -17,8 +17,9 @@ pub fn day1a(input_path: []const u8) !u32 {
     var current: u32 = 0;
     var max: u32 = 0;
     var i: usize = 0;
+    var reader = file.reader();
     while (true) : (i += 1) {
-        var line = try file.reader().readUntilDelimiterOrEof(&buf, '\n');
+        var line = try reader.readUntilDelimiterOrEof(&buf, '\n');
         if (line == null or line.?.len == 0) {
             if (current > max) {
                 max = current;
@@ -40,8 +41,9 @@ pub fn day1b(input_path: []const u8) !u32 {
 
     var buf: [128]u8 = undefined;
     var current: u32 = 0;
+    var reader = file.reader();
     while (true) {
-        var line = try file.reader().readUntilDelimiterOrEof(&buf, '\n');
+        var line = try reader.readUntilDelimiterOrEof(&buf, '\n');
         if (line == null or line.?.len == 0) {
             insertResult(&result, current);
             current = 0;
