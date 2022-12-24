@@ -18,7 +18,8 @@ pub fn day1a(input_path: []const u8) !u32 {
     var buf: [128]u8 = undefined;
     var current: u32 = 0;
     var max: u32 = 0;
-     var reader = file.reader();
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
     while (true) {
         var line = try reader.readUntilDelimiterOrEof(&buf, '\n');
         if (line == null or line.?.len == 0) {
@@ -42,7 +43,8 @@ pub fn day1b(input_path: []const u8) !u32 {
 
     var buf: [128]u8 = undefined;
     var current: u32 = 0;
-    var reader = file.reader();
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
     while (true) {
         var line = try reader.readUntilDelimiterOrEof(&buf, '\n');
         if (line == null or line.?.len == 0) {
