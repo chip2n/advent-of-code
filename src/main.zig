@@ -1,14 +1,16 @@
 const std = @import("std");
 
 pub fn main() !void {
-    const time_start_a = std.time.microTimestamp();
+    const start_a = try std.time.Instant.now();
     const result_a = try day1a("/Users/andreas/dev/aoc-2022/src/input-1");
-    const time_a = std.time.microTimestamp() - time_start_a;
+    const end_a = try std.time.Instant.now();
+    const time_a = end_a.since(start_a);
 
-    const time_start_b = std.time.microTimestamp();
+    const start_b = try std.time.Instant.now();
     const result_b = try day1b("/Users/andreas/dev/aoc-2022/src/input-1");
-    const time_b = std.time.microTimestamp() - time_start_b;
-    std.debug.print("A: {} ({}μs), B: {} ({}μs)", .{ result_a, time_a, result_b, time_b });
+    const end_b = try std.time.Instant.now();
+    const time_b = end_b.since(start_b);
+    std.debug.print("A: {} ({}μs), B: {} ({}μs)", .{ result_a, time_a / 1000, result_b, time_b / 1000});
 }
 
 pub fn day1a(input_path: []const u8) !u32 {
