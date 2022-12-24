@@ -1,9 +1,14 @@
 const std = @import("std");
 
 pub fn main() !void {
-    const resultA = try day1a("/Users/andreas/dev/aoc-2022/src/input-1");
-    const resultB = try day1b("/Users/andreas/dev/aoc-2022/src/input-1");
-    std.log.info("A: {}, B: {}", .{ resultA, resultB });
+    const time_start_a = std.time.microTimestamp();
+    const result_a = try day1a("/Users/andreas/dev/aoc-2022/src/input-1");
+    const time_a = std.time.microTimestamp() - time_start_a;
+
+    const time_start_b = std.time.microTimestamp();
+    const result_b = try day1b("/Users/andreas/dev/aoc-2022/src/input-1");
+    const time_b = std.time.microTimestamp() - time_start_b;
+    std.log.info("A: {} ({}μs), B: {} ({}μs)", .{ result_a, time_a, result_b, time_b });
 }
 
 pub fn day1a(input_path: []const u8) !u32 {
