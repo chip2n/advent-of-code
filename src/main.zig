@@ -15,7 +15,7 @@ pub fn main() !void {
 
 pub fn day1a(input_path: []const u8) !u32 {
     var file = try std.fs.openFileAbsolute(input_path, .{});
-    var buf: [128]u8 = undefined;
+    var buf: [16]u8 = undefined;
     var current: u32 = 0;
     var max: u32 = 0;
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -41,7 +41,7 @@ pub fn day1b(input_path: []const u8) !u32 {
     var file = try std.fs.openFileAbsolute(input_path, .{});
     var result: [3]u32 = [_]u32{ 0, 0, 0 };
 
-    var buf: [128]u8 = undefined;
+    var buf: [16]u8 = undefined;
     var current: u32 = 0;
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
