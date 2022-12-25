@@ -32,6 +32,22 @@ pub fn main() !void {
             .{ result_a, time_a / 1000, result_b, time_b / 1000 },
         );
     }
+
+    { // Day 3
+        const start_a = try std.time.Instant.now();
+        const result_a = try day3a("/Users/andreas/dev/aoc-2022/src/input-3");
+        const end_a = try std.time.Instant.now();
+        const time_a = end_a.since(start_a);
+
+        const start_b = try std.time.Instant.now();
+        const result_b = try day3a("/Users/andreas/dev/aoc-2022/src/input-3");
+        const end_b = try std.time.Instant.now();
+        const time_b = end_b.since(start_b);
+        std.debug.print(
+            "A: {} ({}μs), B: {} ({}μs)\n",
+            .{ result_a, time_a / 1000, result_b, time_b / 1000 },
+        );
+    }
 }
 
 // * Day 1
@@ -216,4 +232,51 @@ test "day 2a" {
 test "day 2b" {
     var result = try day2b("/Users/andreas/dev/aoc-2022/src/input-2-test");
     try std.testing.expectEqual(result, 12);
+}
+
+// * Day 3
+
+pub fn day3a(input_path: []const u8) !u32 {
+    var file = try std.fs.openFileAbsolute(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    var result: u32 = 0;
+    var buf: [64]u8 = undefined;
+    while (true) {
+        const line = try reader.readUntilDelimiterOrEof(&buf, '\n') orelse break;
+
+        const compartment_len = line.len / 2;
+        var items: [52]u8 = [_]u8{0} ** 52;
+        for (line[0..compartment_len]) |item| {
+            var index = indexOfItem(item);
+            items[index] = 1;
+        }
+
+        for (line[compartment_len..line.len]) |item| {
+            var index = indexOfItem(item);
+            if (items[index] > 0) {
+                result += @intCast(u32, index) + 1;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+fn indexOfItem(item: u8) usize {
+    var index: usize = undefined;
+    if (item >= 97) {
+        index = item - 97;
+    } else {
+        index = item - 65 + 26;
+    }
+    return index;
+}
+
+test "day 3a" {
+    var result = try day3a("/Users/andreas/dev/aoc-2022/src/input-3-test");
+    try std.testing.expectEqual(result, 157);
 }
