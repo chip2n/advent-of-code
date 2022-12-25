@@ -24,7 +24,7 @@ pub fn main() !void {
         const time_a = end_a.since(start_a);
 
         const start_b = try std.time.Instant.now();
-        const result_b = try day2a("/Users/andreas/dev/aoc-2022/src/input-2");
+        const result_b = try day2b("/Users/andreas/dev/aoc-2022/src/input-2");
         const end_b = try std.time.Instant.now();
         const time_b = end_b.since(start_b);
         std.debug.print(
@@ -169,7 +169,51 @@ pub fn day2a(input_path: []const u8) !u32 {
     return score_total;
 }
 
+pub fn day2b(input_path: []const u8) !u32 {
+    var file = try std.fs.openFileAbsolute(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    var score_total: u32 = 0;
+
+    while (true) {
+        const move_opponent = Shape.fromOpponentMove(reader.readByte() catch break);
+        _ = try reader.readByte();
+        const outcome = try reader.readByte();
+        _ = reader.readByte() catch {};
+
+        var move_me: Shape = undefined;
+        if (outcome == 'X') {
+            move_me = switch (move_opponent) {
+                .rock => .scissors,
+                .paper => .rock,
+                .scissors => .paper,
+            };
+        } else if (outcome == 'Y') {
+            move_me = move_opponent;
+            score_total += 3;
+        } else {
+            move_me = switch (move_opponent) {
+                .rock => .paper,
+                .paper => .scissors,
+                .scissors => .rock,
+            };
+            score_total += 6;
+        }
+
+        const score = @enumToInt(move_me) + 1;
+        score_total += score;
+    }
+    return score_total;
+}
+
 test "day 2a" {
     var result = try day2a("/Users/andreas/dev/aoc-2022/src/input-2-test");
     try std.testing.expectEqual(result, 15);
+}
+
+test "day 2b" {
+    var result = try day2b("/Users/andreas/dev/aoc-2022/src/input-2-test");
+    try std.testing.expectEqual(result, 12);
 }
