@@ -40,7 +40,7 @@ pub fn main() !void {
         const time_a = end_a.since(start_a);
 
         const start_b = try std.time.Instant.now();
-        const result_b = try day3a("/Users/andreas/dev/aoc-2022/src/input-3");
+        const result_b = try day3b("/Users/andreas/dev/aoc-2022/src/input-3");
         const end_b = try std.time.Instant.now();
         const time_b = end_b.since(start_b);
         std.debug.print(
@@ -266,6 +266,35 @@ pub fn day3a(input_path: []const u8) !u32 {
     return result;
 }
 
+pub fn day3b(input_path: []const u8) !u32 {
+    var file = try std.fs.openFileAbsolute(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    var result: u32 = 0;
+    var buf: [64]u8 = undefined;
+    while (true) {
+        const line1 = try reader.readUntilDelimiterOrEof(&buf, '\n') orelse break;
+        const items1 = readItems(line1);
+        const line2 = try reader.readUntilDelimiterOrEof(&buf, '\n') orelse break;
+        const items2 = readItems(line2);
+        const line3 = try reader.readUntilDelimiterOrEof(&buf, '\n') orelse break;
+        const items3 = readItems(line3);
+
+        for (items1) |item1, i| {
+            const item2 = items2[i];
+            const item3 = items3[i];
+            if (item1 + item2 + item3 == 3) {
+                result += @intCast(u32, i) + 1;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
 fn indexOfItem(item: u8) usize {
     var index: usize = undefined;
     if (item >= 97) {
@@ -276,7 +305,21 @@ fn indexOfItem(item: u8) usize {
     return index;
 }
 
+fn readItems(line: []u8) [52]u8 {
+    var items: [52]u8 = [_]u8{0} ** 52;
+    for (line) |item| {
+        var index = indexOfItem(item);
+        items[index] = 1;
+    }
+    return items;
+}
+
 test "day 3a" {
     var result = try day3a("/Users/andreas/dev/aoc-2022/src/input-3-test");
     try std.testing.expectEqual(result, 157);
+}
+
+test "day 3b" {
+    var result = try day3b("/Users/andreas/dev/aoc-2022/src/input-3-test");
+    try std.testing.expectEqual(result, 70);
 }
