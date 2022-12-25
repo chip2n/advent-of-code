@@ -248,11 +248,7 @@ pub fn day3a(input_path: []const u8) !u32 {
         const line = try reader.readUntilDelimiterOrEof(&buf, '\n') orelse break;
 
         const compartment_len = line.len / 2;
-        var items: [52]u8 = [_]u8{0} ** 52;
-        for (line[0..compartment_len]) |item| {
-            var index = indexOfItem(item);
-            items[index] = 1;
-        }
+        const items = readItems(line[0..compartment_len]);
 
         for (line[compartment_len..line.len]) |item| {
             var index = indexOfItem(item);
