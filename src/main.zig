@@ -42,6 +42,12 @@ pub fn main() !void {
         const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-3", day3b);
         printResult(a, b);
     }
+
+    { // Day 4
+        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-4", day4a);
+        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-4", day4a);
+        printResult(a, b);
+    }
 }
 
 // * Day 1
@@ -312,4 +318,47 @@ test "day 3a" {
 test "day 3b" {
     var result = try day3b("/Users/andreas/dev/aoc-2022/src/input-3-test");
     try std.testing.expectEqual(result, 70);
+}
+
+// * Day 4
+
+pub fn day4a(input_path: []const u8) !u32 {
+    var file = try std.fs.openFileAbsolute(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    var result: u32 = 0;
+    var buf: [64]u8 = undefined;
+    while (true) {
+        const min1 = readNumUntilDelimiter(reader, &buf, '-') catch break;
+        const max1 = try readNumUntilDelimiter(reader, &buf, ',');
+        const min2 = try readNumUntilDelimiter(reader, &buf, '-');
+        const max2 = try readNumUntilDelimiter(reader, &buf, '\n');
+
+        if (min1 < min2) {
+            if (max1 >= max2) {
+                result += 1;
+            }
+        } else if (min1 > min2) {
+            if (max2 >= max1) {
+                result += 1;
+            }
+        } else {
+            result += 1;
+        }
+    }
+
+    return result;
+}
+
+inline fn readNumUntilDelimiter(reader: anytype, buf: []u8, delimiter: u8) !u32 {
+    const line = try reader.readUntilDelimiter(buf, delimiter);
+    const number = try std.fmt.parseUnsigned(u32, line, 10);
+    return number;
+}
+
+test "day 4a" {
+    var result = try day4a("/Users/andreas/dev/aoc-2022/src/input-4-test");
+    try std.testing.expectEqual(result, 2);
 }
