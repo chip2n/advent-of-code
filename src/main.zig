@@ -1,52 +1,46 @@
 const std = @import("std");
 
+const DayResult = struct {
+    elapsed_micros: u64,
+    output: u32,
+};
+
+fn runDay(input_path: []const u8, comptime func: fn ([]const u8) anyerror!u32) !DayResult {
+    const start = try std.time.Instant.now();
+    const output = try func(input_path);
+    const end = try std.time.Instant.now();
+    const time = end.since(start);
+
+    return DayResult{
+        .elapsed_micros = time / 1000,
+        .output = output,
+    };
+}
+
+fn printResult(a: DayResult, b: DayResult) void {
+    std.debug.print(
+        "A: {} ({}μs), B: {} ({}μs)\n",
+        .{ a.output, a.elapsed_micros, b.output, b.elapsed_micros },
+    );
+}
+
 pub fn main() !void {
     { // Day 1
-        const start_a = try std.time.Instant.now();
-        const result_a = try day1a("/Users/andreas/dev/aoc-2022/src/input-1");
-        const end_a = try std.time.Instant.now();
-        const time_a = end_a.since(start_a);
-
-        const start_b = try std.time.Instant.now();
-        const result_b = try day1b("/Users/andreas/dev/aoc-2022/src/input-1");
-        const end_b = try std.time.Instant.now();
-        const time_b = end_b.since(start_b);
-        std.debug.print(
-            "A: {} ({}μs), B: {} ({}μs)\n",
-            .{ result_a, time_a / 1000, result_b, time_b / 1000 },
-        );
+        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-1", day1a);
+        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-1", day1b);
+        printResult(a, b);
     }
 
     { // Day 2
-        const start_a = try std.time.Instant.now();
-        const result_a = try day2a("/Users/andreas/dev/aoc-2022/src/input-2");
-        const end_a = try std.time.Instant.now();
-        const time_a = end_a.since(start_a);
-
-        const start_b = try std.time.Instant.now();
-        const result_b = try day2b("/Users/andreas/dev/aoc-2022/src/input-2");
-        const end_b = try std.time.Instant.now();
-        const time_b = end_b.since(start_b);
-        std.debug.print(
-            "A: {} ({}μs), B: {} ({}μs)\n",
-            .{ result_a, time_a / 1000, result_b, time_b / 1000 },
-        );
+        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-2", day2a);
+        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-2", day2b);
+        printResult(a, b);
     }
 
     { // Day 3
-        const start_a = try std.time.Instant.now();
-        const result_a = try day3a("/Users/andreas/dev/aoc-2022/src/input-3");
-        const end_a = try std.time.Instant.now();
-        const time_a = end_a.since(start_a);
-
-        const start_b = try std.time.Instant.now();
-        const result_b = try day3b("/Users/andreas/dev/aoc-2022/src/input-3");
-        const end_b = try std.time.Instant.now();
-        const time_b = end_b.since(start_b);
-        std.debug.print(
-            "A: {} ({}μs), B: {} ({}μs)\n",
-            .{ result_a, time_a / 1000, result_b, time_b / 1000 },
-        );
+        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-3", day3a);
+        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-3", day3b);
+        printResult(a, b);
     }
 }
 
