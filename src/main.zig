@@ -61,7 +61,7 @@ pub fn main() !void {
 
     { // Day 5
         const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5a);
-        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5a);
+        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5b);
         printResult(a, b);
     }
 }
@@ -447,6 +447,53 @@ pub fn day5a(allocator: Allocator, input_path: []const u8) !Output {
     return output.toOwnedSlice();
 }
 
+pub fn day5b(allocator: Allocator, input_path: []const u8) !Output {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+
+    var file = try std.fs.openFileAbsolute(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    var buf: [64]u8 = undefined;
+
+    var stacks = try readStacks(arena.allocator(), reader);
+
+    while (try readMoveCommand(reader, &buf)) |cmd| {
+        var temp = std.ArrayList(u8).init(allocator);
+        defer temp.deinit();
+
+        {
+            var i: usize = 0;
+            while (i < cmd.amount) : (i += 1) {
+                const item = stacks[cmd.from].pop();
+                try temp.append(item);
+                //            try stacks[cmd.to].append(item);
+            }
+        }
+
+        { // Append from end of temp list
+            var i: usize = temp.items.len;
+            while (i > 0) {
+                i -= 1;
+                const item = temp.items[i];
+                try stacks[cmd.to].append(item);
+            }
+        }
+    }
+
+    // Output is top element of each crate stack
+    var output = std.ArrayList(u8).init(allocator);
+    for (stacks) |stack| {
+        if (stack.items.len == 0) continue;
+        const item = stack.items[stack.items.len - 1];
+        try output.append(item);
+    }
+
+    return output.toOwnedSlice();
+}
+
 const MoveCommand = struct {
     amount: u8,
     from: usize,
@@ -488,7 +535,7 @@ fn readStacks(allocator: Allocator, reader: anytype) ![]CrateStack {
     }
 
     {
-        var i = lines.items.len - 1;
+        var i = lines.items.len;
         while (i > 0) {
             i -= 1;
             const line = lines.items[i];
@@ -510,6 +557,12 @@ test "day 5a" {
     var result = try day5a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-5-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "CMZ");
+}
+
+test "day 5b" {
+    var result = try day5b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-5-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "MCD");
 }
 
 // * Utils
