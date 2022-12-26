@@ -1,13 +1,19 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
+
+const Output = []const u8;
+const Solution = fn (Allocator, []const u8) anyerror!Output;
 
 const DayResult = struct {
     elapsed_micros: u64,
-    output: u32,
+    output: Output,
 };
 
-fn runDay(input_path: []const u8, comptime func: fn ([]const u8) anyerror!u32) !DayResult {
+fn runDay(allocator: Allocator, input_path: []const u8, comptime func: Solution) !DayResult {
     const start = try std.time.Instant.now();
-    const output = try func(input_path);
+
+    const output = try func(allocator, input_path);
+
     const end = try std.time.Instant.now();
     const time = end.since(start);
 
@@ -19,40 +25,50 @@ fn runDay(input_path: []const u8, comptime func: fn ([]const u8) anyerror!u32) !
 
 fn printResult(a: DayResult, b: DayResult) void {
     std.debug.print(
-        "A: {} ({}μs), B: {} ({}μs)\n",
+        "A: {s} ({}μs), B: {s} ({}μs)\n",
         .{ a.output, a.elapsed_micros, b.output, b.elapsed_micros },
     );
 }
 
 pub fn main() !void {
+    var arena = std.heap.ArenaAllocator.init(std.heap.c_allocator);
+    defer arena.deinit();
+    var allocator = arena.allocator();
+
     { // Day 1
-        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-1", day1a);
-        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-1", day1b);
+        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-1", day1a);
+        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-1", day1b);
         printResult(a, b);
     }
 
     { // Day 2
-        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-2", day2a);
-        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-2", day2b);
+        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-2", day2a);
+        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-2", day2b);
         printResult(a, b);
     }
 
     { // Day 3
-        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-3", day3a);
-        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-3", day3b);
+        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-3", day3a);
+        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-3", day3b);
         printResult(a, b);
     }
 
     { // Day 4
-        const a = try runDay("/Users/andreas/dev/aoc-2022/src/input-4", day4a);
-        const b = try runDay("/Users/andreas/dev/aoc-2022/src/input-4", day4b);
+        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-4", day4a);
+        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-4", day4b);
+        printResult(a, b);
+    }
+
+    { // Day 5
+        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5a);
+        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5a);
         printResult(a, b);
     }
 }
 
 // * Day 1
 
-pub fn day1a(input_path: []const u8) !u32 {
+pub fn day1a(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
     var buf: [16]u8 = undefined;
     var current: u32 = 0;
@@ -73,10 +89,11 @@ pub fn day1a(input_path: []const u8) !u32 {
 
         if (line == null) break;
     }
-    return max;
+
+    return try outputNum(allocator, max);
 }
 
-pub fn day1b(input_path: []const u8) !u32 {
+pub fn day1b(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
     var result: [3]u32 = [_]u32{ 0, 0, 0 };
 
@@ -101,7 +118,7 @@ pub fn day1b(input_path: []const u8) !u32 {
     for (result) |n| {
         sum += n;
     }
-    return sum;
+    return outputNum(allocator, sum);
 }
 
 fn insertResult(result: []u32, n: u32) void {
@@ -118,13 +135,15 @@ fn insertResult(result: []u32, n: u32) void {
 }
 
 test "day 1a" {
-    var result = try day1a("/Users/andreas/dev/aoc-2022/src/input-1-test");
-    try std.testing.expectEqual(result, 24000);
+    var result = try day1a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-1-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "24000");
 }
 
 test "day 1b" {
-    var result = try day1b("/Users/andreas/dev/aoc-2022/src/input-1-test");
-    try std.testing.expectEqual(result, 45000);
+    var result = try day1b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-1-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "45000");
 }
 
 // * Day 2
@@ -155,7 +174,7 @@ const Shape = enum {
     }
 };
 
-pub fn day2a(input_path: []const u8) !u32 {
+pub fn day2a(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -182,10 +201,10 @@ pub fn day2a(input_path: []const u8) !u32 {
             score_total += 6;
         }
     }
-    return score_total;
+    return outputNum(allocator, score_total);
 }
 
-pub fn day2b(input_path: []const u8) !u32 {
+pub fn day2b(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -221,22 +240,24 @@ pub fn day2b(input_path: []const u8) !u32 {
         const score = @enumToInt(move_me) + 1;
         score_total += score;
     }
-    return score_total;
+    return outputNum(allocator, score_total);
 }
 
 test "day 2a" {
-    var result = try day2a("/Users/andreas/dev/aoc-2022/src/input-2-test");
-    try std.testing.expectEqual(result, 15);
+    var result = try day2a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-2-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "15");
 }
 
 test "day 2b" {
-    var result = try day2b("/Users/andreas/dev/aoc-2022/src/input-2-test");
-    try std.testing.expectEqual(result, 12);
+    var result = try day2b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-2-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "12");
 }
 
 // * Day 3
 
-pub fn day3a(input_path: []const u8) !u32 {
+pub fn day3a(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -259,10 +280,10 @@ pub fn day3a(input_path: []const u8) !u32 {
         }
     }
 
-    return result;
+    return outputNum(allocator, result);
 }
 
-pub fn day3b(input_path: []const u8) !u32 {
+pub fn day3b(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -288,7 +309,7 @@ pub fn day3b(input_path: []const u8) !u32 {
         }
     }
 
-    return result;
+    return outputNum(allocator, result);
 }
 
 fn indexOfItem(item: u8) usize {
@@ -311,18 +332,20 @@ fn readItems(line: []u8) [52]u8 {
 }
 
 test "day 3a" {
-    var result = try day3a("/Users/andreas/dev/aoc-2022/src/input-3-test");
-    try std.testing.expectEqual(result, 157);
+    var result = try day3a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-3-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "157");
 }
 
 test "day 3b" {
-    var result = try day3b("/Users/andreas/dev/aoc-2022/src/input-3-test");
-    try std.testing.expectEqual(result, 70);
+    var result = try day3b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-3-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "70");
 }
 
 // * Day 4
 
-pub fn day4a(input_path: []const u8) !u32 {
+pub fn day4a(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -331,10 +354,10 @@ pub fn day4a(input_path: []const u8) !u32 {
     var result: u32 = 0;
     var buf: [64]u8 = undefined;
     while (true) {
-        const min1 = readNumUntilDelimiter(reader, &buf, '-') catch break;
-        const max1 = try readNumUntilDelimiter(reader, &buf, ',');
-        const min2 = try readNumUntilDelimiter(reader, &buf, '-');
-        const max2 = try readNumUntilDelimiter(reader, &buf, '\n');
+        const min1 = readNumUntilDelimiter(u32, reader, &buf, '-') catch break;
+        const max1 = try readNumUntilDelimiter(u32, reader, &buf, ',');
+        const min2 = try readNumUntilDelimiter(u32, reader, &buf, '-');
+        const max2 = try readNumUntilDelimiter(u32, reader, &buf, '\n');
 
         if (min1 < min2) {
             if (max1 >= max2) {
@@ -349,10 +372,10 @@ pub fn day4a(input_path: []const u8) !u32 {
         }
     }
 
-    return result;
+    return outputNum(allocator, result);
 }
 
-pub fn day4b(input_path: []const u8) !u32 {
+pub fn day4b(allocator: Allocator, input_path: []const u8) !Output {
     var file = try std.fs.openFileAbsolute(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
@@ -361,10 +384,10 @@ pub fn day4b(input_path: []const u8) !u32 {
     var result: u32 = 0;
     var buf: [64]u8 = undefined;
     while (true) {
-        const min1 = readNumUntilDelimiter(reader, &buf, '-') catch break;
-        const max1 = try readNumUntilDelimiter(reader, &buf, ',');
-        const min2 = try readNumUntilDelimiter(reader, &buf, '-');
-        const max2 = try readNumUntilDelimiter(reader, &buf, '\n');
+        const min1 = readNumUntilDelimiter(u32, reader, &buf, '-') catch break;
+        const max1 = try readNumUntilDelimiter(u32, reader, &buf, ',');
+        const min2 = try readNumUntilDelimiter(u32, reader, &buf, '-');
+        const max2 = try readNumUntilDelimiter(u32, reader, &buf, '\n');
 
         if (min1 == min2 or max1 == max2) {
             result += 1;
@@ -375,21 +398,128 @@ pub fn day4b(input_path: []const u8) !u32 {
         }
     }
 
-    return result;
-}
-
-inline fn readNumUntilDelimiter(reader: anytype, buf: []u8, delimiter: u8) !u32 {
-    const line = try reader.readUntilDelimiter(buf, delimiter);
-    const number = try std.fmt.parseUnsigned(u32, line, 10);
-    return number;
+    return outputNum(allocator, result);
 }
 
 test "day 4a" {
-    var result = try day4a("/Users/andreas/dev/aoc-2022/src/input-4-test");
-    try std.testing.expectEqual(result, 2);
+    var result = try day4a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-4-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "2");
 }
 
 test "day 4b" {
-    var result = try day4b("/Users/andreas/dev/aoc-2022/src/input-4-test");
-    try std.testing.expectEqual(result, 4);
+    var result = try day4b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-4-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "4");
+}
+
+// * Day 5
+
+pub fn day5a(allocator: Allocator, input_path: []const u8) !Output {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+
+    var file = try std.fs.openFileAbsolute(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    var buf: [64]u8 = undefined;
+
+    var stacks = try readStacks(arena.allocator(), reader);
+
+    while (try readMoveCommand(reader, &buf)) |cmd| {
+        var i: usize = 0;
+        while (i < cmd.amount) : (i += 1) {
+            const item = stacks[cmd.from].pop();
+            try stacks[cmd.to].append(item);
+        }
+    }
+
+    // Output is top element of each crate stack
+    var output = std.ArrayList(u8).init(allocator);
+    for (stacks) |stack| {
+        if (stack.items.len == 0) continue;
+        const item = stack.items[stack.items.len - 1];
+        try output.append(item);
+    }
+
+    return output.toOwnedSlice();
+}
+
+const MoveCommand = struct {
+    amount: u8,
+    from: usize,
+    to: usize,
+};
+
+const CrateStack = std.ArrayList(u8);
+
+fn readMoveCommand(reader: anytype, buf: []u8) !?MoveCommand {
+    _ = reader.readUntilDelimiter(buf, ' ') catch return null;
+    const amount = try readNumUntilDelimiter(u8, reader, buf, ' ');
+    _ = try reader.readUntilDelimiter(buf, ' ');
+    const from = try readNumUntilDelimiter(u32, reader, buf, ' ') - 1;
+    _ = try reader.readUntilDelimiter(buf, ' ');
+    const to = try readNumUntilDelimiter(u32, reader, buf, '\n') - 1;
+    return MoveCommand{ .amount = amount, .from = from, .to = to };
+}
+
+fn readStacks(allocator: Allocator, reader: anytype) ![]CrateStack {
+    var lines = std.ArrayListUnmanaged([]u8){};
+
+    while (true) {
+        const line = try reader.readUntilDelimiterAlloc(allocator, '\n', 64);
+        if (line.len == 0) {
+            break;
+        }
+        try lines.append(allocator, line);
+    }
+
+    const num_stacks = (lines.items[0].len + 1) / 4;
+
+    var result = std.ArrayList(CrateStack).init(allocator);
+
+    { // Initialize each stack
+        var i: usize = 0;
+        while (i < num_stacks) : (i += 1) {
+            try result.append(CrateStack.init(allocator));
+        }
+    }
+
+    {
+        var i = lines.items.len - 1;
+        while (i > 0) {
+            i -= 1;
+            const line = lines.items[i];
+
+            // Add items on to every stack
+            var x: usize = 0;
+            while (x < num_stacks) : (x += 1) {
+                const item = line[4 * x + 1];
+                if (item == ' ') continue;
+                try result.items[x].append(item);
+            }
+        }
+    }
+
+    return result.toOwnedSlice();
+}
+
+test "day 5a" {
+    var result = try day5a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-5-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "CMZ");
+}
+
+// * Utils
+
+inline fn readNumUntilDelimiter(comptime T: type, reader: anytype, buf: []u8, delimiter: u8) !T {
+    const line = try reader.readUntilDelimiter(buf, delimiter);
+    const number = try std.fmt.parseUnsigned(T, line, 10);
+    return number;
+}
+
+fn outputNum(allocator: Allocator, answer: u32) !Output {
+    return try std.fmt.allocPrint(allocator, "{}", .{answer});
 }
