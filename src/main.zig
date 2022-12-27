@@ -475,8 +475,7 @@ pub fn day5b(allocator: Allocator, input_path: []const u8) !Output {
             while (i < cmd.amount) : (i += 1) {
                 const item = stacks[cmd.from].pop();
                 try temp.append(item);
-                //            try stacks[cmd.to].append(item);
-            }
+              }
         }
 
         { // Append from end of temp list
