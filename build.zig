@@ -14,7 +14,15 @@ pub fn build(b: *std.build.Builder) void {
     const exe = b.addExecutable("aoc-2022", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
+    exe.linkLibC();
     exe.install();
+
+    const inputs_step = b.addInstallDirectory(.{
+        .source_dir = "inputs",
+        .install_dir = .bin,
+        .install_subdir = "inputs",
+    });
+    exe.install_step.?.step.dependOn(&inputs_step.step);
 
     const run_cmd = exe.run();
     run_cmd.step.dependOn(b.getInstallStep());

@@ -36,32 +36,32 @@ pub fn main() !void {
     var allocator = arena.allocator();
 
     { // Day 1
-        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-1", day1a);
-        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-1", day1b);
+        const a = try runDay(allocator, "inputs/input-1", day1a);
+        const b = try runDay(allocator, "inputs/input-1", day1b);
         printResult(a, b);
     }
 
     { // Day 2
-        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-2", day2a);
-        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-2", day2b);
+        const a = try runDay(allocator, "inputs/input-2", day2a);
+        const b = try runDay(allocator, "inputs/input-2", day2b);
         printResult(a, b);
     }
 
     { // Day 3
-        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-3", day3a);
-        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-3", day3b);
+        const a = try runDay(allocator, "inputs/input-3", day3a);
+        const b = try runDay(allocator, "inputs/input-3", day3b);
         printResult(a, b);
     }
 
     { // Day 4
-        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-4", day4a);
-        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-4", day4b);
+        const a = try runDay(allocator, "inputs/input-4", day4a);
+        const b = try runDay(allocator, "inputs/input-4", day4b);
         printResult(a, b);
     }
 
     { // Day 5
-        const a = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5a);
-        const b = try runDay(allocator, "/Users/andreas/dev/aoc-2022/src/input-5", day5b);
+        const a = try runDay(allocator, "inputs/input-5", day5a);
+        const b = try runDay(allocator, "inputs/input-5", day5b);
         printResult(a, b);
     }
 }
@@ -69,7 +69,7 @@ pub fn main() !void {
 // * Day 1
 
 pub fn day1a(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
     var buf: [16]u8 = undefined;
     var current: u32 = 0;
     var max: u32 = 0;
@@ -94,7 +94,7 @@ pub fn day1a(allocator: Allocator, input_path: []const u8) !Output {
 }
 
 pub fn day1b(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
     var result: [3]u32 = [_]u32{ 0, 0, 0 };
 
     var buf: [16]u8 = undefined;
@@ -135,13 +135,13 @@ fn insertResult(result: []u32, n: u32) void {
 }
 
 test "day 1a" {
-    var result = try day1a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-1-test");
+    var result = try day1a(std.testing.allocator, "inputs/input-1-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "24000");
 }
 
 test "day 1b" {
-    var result = try day1b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-1-test");
+    var result = try day1b(std.testing.allocator, "inputs/input-1-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "45000");
 }
@@ -175,7 +175,7 @@ const Shape = enum {
 };
 
 pub fn day2a(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -205,7 +205,7 @@ pub fn day2a(allocator: Allocator, input_path: []const u8) !Output {
 }
 
 pub fn day2b(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -244,13 +244,13 @@ pub fn day2b(allocator: Allocator, input_path: []const u8) !Output {
 }
 
 test "day 2a" {
-    var result = try day2a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-2-test");
+    var result = try day2a(std.testing.allocator, "inputs/input-2-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "15");
 }
 
 test "day 2b" {
-    var result = try day2b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-2-test");
+    var result = try day2b(std.testing.allocator, "inputs/input-2-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "12");
 }
@@ -258,7 +258,7 @@ test "day 2b" {
 // * Day 3
 
 pub fn day3a(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -284,7 +284,7 @@ pub fn day3a(allocator: Allocator, input_path: []const u8) !Output {
 }
 
 pub fn day3b(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -332,13 +332,13 @@ fn readItems(line: []u8) [52]u8 {
 }
 
 test "day 3a" {
-    var result = try day3a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-3-test");
+    var result = try day3a(std.testing.allocator, "inputs/input-3-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "157");
 }
 
 test "day 3b" {
-    var result = try day3b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-3-test");
+    var result = try day3b(std.testing.allocator, "inputs/input-3-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "70");
 }
@@ -346,7 +346,7 @@ test "day 3b" {
 // * Day 4
 
 pub fn day4a(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -376,7 +376,7 @@ pub fn day4a(allocator: Allocator, input_path: []const u8) !Output {
 }
 
 pub fn day4b(allocator: Allocator, input_path: []const u8) !Output {
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -402,13 +402,13 @@ pub fn day4b(allocator: Allocator, input_path: []const u8) !Output {
 }
 
 test "day 4a" {
-    var result = try day4a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-4-test");
+    var result = try day4a(std.testing.allocator, "inputs/input-4-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "2");
 }
 
 test "day 4b" {
-    var result = try day4b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-4-test");
+    var result = try day4b(std.testing.allocator, "inputs/input-4-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "4");
 }
@@ -419,7 +419,7 @@ pub fn day5a(allocator: Allocator, input_path: []const u8) !Output {
     var arena = std.heap.ArenaAllocator.init(allocator);
     defer arena.deinit();
 
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -451,7 +451,7 @@ pub fn day5b(allocator: Allocator, input_path: []const u8) !Output {
     var arena = std.heap.ArenaAllocator.init(allocator);
     defer arena.deinit();
 
-    var file = try std.fs.openFileAbsolute(input_path, .{});
+    var file = try std.fs.cwd().openFile(input_path, .{});
 
     var buffered_reader = std.io.bufferedReader(file.reader());
     var reader = buffered_reader.reader();
@@ -554,13 +554,13 @@ fn readStacks(allocator: Allocator, reader: anytype) ![]CrateStack {
 }
 
 test "day 5a" {
-    var result = try day5a(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-5-test");
+    var result = try day5a(std.testing.allocator, "inputs/input-5-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "CMZ");
 }
 
 test "day 5b" {
-    var result = try day5b(std.testing.allocator, "/Users/andreas/dev/aoc-2022/src/input-5-test");
+    var result = try day5b(std.testing.allocator, "inputs/input-5-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "MCD");
 }
