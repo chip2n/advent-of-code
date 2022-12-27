@@ -64,6 +64,12 @@ pub fn main() !void {
         const b = try runDay(allocator, "inputs/input-5", day5b);
         printResult(a, b);
     }
+
+    { // Day 6
+        const a = try runDay(allocator, "inputs/input-6", day6a);
+        const b = try runDay(allocator, "inputs/input-6", day6a);
+        printResult(a, b);
+    }
 }
 
 // * Day 1
@@ -563,6 +569,71 @@ test "day 5b" {
     var result = try day5b(std.testing.allocator, "inputs/input-5-test");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "MCD");
+}
+
+// * Day 6
+
+pub fn day6a(allocator: Allocator, input_path: []const u8) !Output {
+    var file = try std.fs.cwd().openFile(input_path, .{});
+
+    var buffered_reader = std.io.bufferedReader(file.reader());
+    var reader = buffered_reader.reader();
+
+    const signal = try reader.readUntilDelimiterAlloc(allocator, '\n', 4096);
+    defer allocator.free(signal);
+
+    var i: u32 = 4;
+    while (i < signal.len) : (i += 1) {
+        if (checkUniqueBytes(signal[i - 4 .. i])) break;
+    }
+
+    return try outputNum(allocator, i);
+}
+
+fn checkUniqueBytes(win: []const u8) bool {
+    // 0: 1 2 3
+    // 1: 2 3
+    // 2: 3
+    var i: usize = 0;
+    while (i < 4) : (i += 1) {
+        var offset: usize = 0;
+        while (offset < 3 - i) : (offset += 1) {
+            if (win[i] == win[i + 1 + offset]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+test "day 6a 1" {
+    var result = try day6a(std.testing.allocator, "inputs/input-6-test1");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "7");
+}
+
+test "day 6a 2" {
+    var result = try day6a(std.testing.allocator, "inputs/input-6-test2");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "5");
+}
+
+test "day 6a 3" {
+    var result = try day6a(std.testing.allocator, "inputs/input-6-test3");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "6");
+}
+
+test "day 6a 4" {
+    var result = try day6a(std.testing.allocator, "inputs/input-6-test4");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "10");
+}
+
+test "day 6a 5" {
+    var result = try day6a(std.testing.allocator, "inputs/input-6-test5");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "11");
 }
 
 // * Utils
