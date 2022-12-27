@@ -36,6 +36,14 @@ pub fn build(b: *std.build.Builder) void {
     const exe_tests = b.addTest("src/main.zig");
     exe_tests.setTarget(target);
     exe_tests.setBuildMode(mode);
+    exe_tests.setOutputDir("zig-out/test_bin");
+
+    const test_inputs_step = b.addInstallDirectory(.{
+        .source_dir = "inputs",
+        .install_dir = .{ .custom = "test_bin" },
+        .install_subdir = "inputs",
+    });
+    exe_tests.step.dependOn(&test_inputs_step.step);
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
