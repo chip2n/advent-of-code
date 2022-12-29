@@ -70,6 +70,12 @@ pub fn main() !void {
         const b = try runDay(allocator, "inputs/input-6", day6b);
         printResult(a, b);
     }
+
+    { // Day 7
+        const a = try runDay(allocator, "inputs/input-7", day7a);
+        const b = try runDay(allocator, "inputs/input-7", day7a);
+        printResult(a, b);
+    }
 }
 
 // * Day 1
@@ -475,7 +481,7 @@ pub fn day5b(allocator: Allocator, input_path: []const u8) !Output {
             while (i < cmd.amount) : (i += 1) {
                 const item = stacks[cmd.from].pop();
                 try temp.append(item);
-              }
+            }
         }
 
         { // Append from end of temp list
@@ -677,6 +683,145 @@ test "day 6b 5" {
     var result = try day6b(std.testing.allocator, "inputs/input-6-test5");
     defer std.testing.allocator.free(result);
     try std.testing.expectEqualStrings(result, "26");
+}
+
+// * Day 7
+
+pub fn day7a(allocator: Allocator, input_path: []const u8) !Output {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+
+    var file = try std.fs.cwd().openFile(input_path, .{});
+    const buf = try file.readToEndAlloc(arena.allocator(), std.math.maxInt(usize));
+    var tokens = std.mem.tokenize(u8, buf, "\n");
+    var current_path = std.ArrayList(*DirEntry).init(arena.allocator());
+
+    var root = DirEntry.init(arena.allocator(), "/");
+    try current_path.append(&root);
+
+    while (tokens.next()) |token| {
+        var current_dir_entry = current_path.items[current_path.items.len - 1];
+        switch (token[0]) {
+            '$' => {
+                const cmd = try readCommand(token[2..]);
+                switch (cmd) {
+                    .cd => {
+                        if (std.mem.eql(u8, cmd.cd, "/")) {
+                            try current_path.resize(1);
+                        } else if (std.mem.eql(u8, cmd.cd, "..")) {
+                            _ = current_path.pop();
+                        } else {
+                            const next_entry = current_dir_entry.dirs.getPtr(cmd.cd).?;
+                            try current_path.append(next_entry);
+                        }
+                    },
+                    .ls => {
+                        try readListOutput(arena.allocator(), current_dir_entry, &tokens);
+                    },
+                }
+            },
+            else => {},
+        }
+    }
+
+    var total_size: u32 = 0;
+    var stack = std.ArrayList(*DirEntry).init(allocator);
+    defer stack.deinit();
+    try stack.append(current_path.items[0]);
+
+    while (true) {
+        var current_dir = stack.popOrNull() orelse break;
+
+        var size = calculateDirSize(current_dir);
+        if (size <= 100000) {
+            total_size += @intCast(u32, size);
+        }
+
+        var dir_iter = current_dir.dirs.valueIterator();
+        while (dir_iter.next()) |dir| {
+            try stack.append(dir);
+        }
+    }
+
+    return outputNum(allocator, total_size);
+}
+
+const FileEntry = struct {
+    name: []const u8,
+    size: usize,
+};
+
+const DirEntry = struct {
+    name: []const u8,
+    dirs: std.StringHashMap(DirEntry),
+    files: std.StringHashMap(FileEntry),
+
+    fn init(allocator: std.mem.Allocator, name: []const u8) DirEntry {
+        return .{
+            .name = name,
+            .dirs = std.StringHashMap(DirEntry).init(allocator),
+            .files = std.StringHashMap(FileEntry).init(allocator),
+        };
+    }
+};
+
+const Command = union(enum) {
+    cd: []const u8,
+    ls: void,
+};
+
+const cmd_map = std.ComptimeStringMap(std.meta.Tag(Command), .{
+    .{ "cd", .cd },
+    .{ "ls", .ls },
+});
+
+fn readCommand(s: []const u8) !Command {
+    var tokens = std.mem.tokenize(u8, s, " ");
+    var cmd = tokens.next() orelse return error.InvalidCommand;
+
+    switch (cmd_map.get(cmd) orelse return error.InvalidCommand) {
+        .cd => return Command{ .cd = tokens.next() orelse return error.InvalidCommand },
+        .ls => return .ls,
+    }
+}
+
+fn readListOutput(allocator: std.mem.Allocator, dir_entry: *DirEntry, tokens: *std.mem.TokenIterator(u8)) !void {
+    while (true) {
+        const token = tokens.peek() orelse return;
+        if (token[0] == '$') break;
+        _ = tokens.next();
+
+        var output = std.mem.tokenize(u8, token, " ");
+        var size = output.next().?;
+        var name = output.next().?;
+        if (std.mem.eql(u8, size, "dir")) {
+            try dir_entry.dirs.put(name, DirEntry.init(allocator, name));
+        } else {
+            try dir_entry.files.put(name, FileEntry{
+                .name = name,
+                .size = try std.fmt.parseInt(usize, size, 10),
+            });
+        }
+    }
+}
+
+fn calculateDirSize(dir: *DirEntry) usize {
+    var size: usize = 0;
+    var file_iter = dir.files.valueIterator();
+    while (file_iter.next()) |file| {
+        size += file.size;
+    }
+    var dir_iter = dir.dirs.valueIterator();
+    while (dir_iter.next()) |child| {
+        size += calculateDirSize(child);
+    }
+    return size;
+}
+
+test "day 7a" {
+    var result = try day7a(std.testing.allocator, "inputs/input-7-test");
+    defer std.testing.allocator.free(result);
+    try std.testing.expectEqualStrings(result, "95437");
 }
 
 // * Utils
