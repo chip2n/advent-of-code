@@ -4,6 +4,6 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:alexandria #:fiveam)
+  :depends-on (#:alexandria #:str #:arrows #:fiveam)
   :components ((:file "package")
                (:file "advent")))

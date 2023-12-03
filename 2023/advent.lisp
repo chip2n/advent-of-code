@@ -118,6 +118,86 @@ zoneight234
   (with-input-from-string (s *day1b-sample*)
     (is (eql 281 (solve-day1b s)))))
 
+;; * Day 2a
+
+(defun read-until (stream predicate)
+  (loop for c = (peek-char nil stream nil)
+        while (and c (not (funcall predicate c)))
+        collect (read-char stream nil) into chars
+        finally (return (coerce chars 'string))))
+
+(defun read-until-char (stream c)
+  (read-until stream (lambda (x) (char= c x))))
+
+(defun read-char-n (stream n)
+  (loop for i from 0 below n
+        for c = (read-char stream nil)
+        while c
+        collect c))
+
+(defun read-integer (stream)
+  (parse-integer
+   (read-until stream (lambda (c) (not (digit-char-p c))))))
+
+(defun drop (n s)
+  (subseq s (min n (length s))))
+
+(defun parse-round (s)
+  (->> (str:trim s)
+       (str:split ", ")
+       (mapcar #'parse-hand)))
+
+(defun parse-hand (s)
+  (let ((res (str:split " " s)))
+    (cons (parse-integer (car res))
+          (a:make-keyword (str:upcase (cadr res))))))
+
+(defparameter *legal-games*
+  '((12 . :red)
+    (13 . :green)
+    (14 . :blue)))
+
+(defun parse-dice-game (line)
+  (with-input-from-string (stream line)
+    (let ((game-id (parse-integer (drop 5 (read-until-char stream #\Colon))))
+          (rounds (->> (progn (read-char-n stream 2) (read-line stream))
+                       (str:split ";")
+                       (mapcar #'parse-round))))
+      (cons game-id rounds))))
+
+#+(or)
+(progn
+  (parse-dice-game "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"))
+
+(defun all (seq)
+  (every #'identity seq))
+
+(defun hand-legal-p (hand)
+  (<= (car hand)
+      (car (rassoc (cdr hand) *legal-games*))))
+
+(defun round-legal-p (round)
+  (all (mapcar #'hand-legal-p round)))
+
+(defun solve-day2a (stream)
+  (loop for line = (read-line stream nil)
+        while line
+        for (id . rounds) = (parse-dice-game line)
+        when (all (mapcar #'round-legal-p rounds))
+          summing id))
+
+(defvar *day2a-sample* (string-trim '(#\Newline) "
+Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+"))
+
+(test day2a-sample
+  (with-input-from-string (s *day2a-sample*)
+    (is (eql 8 (solve-day2a s)))))
+
 ;; * Main
 
 (defun solve (solver input-path)

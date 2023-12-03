@@ -1,3 +1,3 @@
 (defpackage #:advent
-  (:use #:cl #:fiveam)
+  (:use #:cl #:fiveam #:arrows)
   (:local-nicknames (#:a #:alexandria)))
