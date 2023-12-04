@@ -6,4 +6,6 @@
   :serial t
   :depends-on (#:alexandria #:str #:arrows #:fiveam)
   :components ((:file "package")
-               (:file "advent")))
+               (:file "advent")
+               (:file "day1")
+               (:file "day2")))
