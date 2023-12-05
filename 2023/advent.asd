@@ -8,4 +8,5 @@
   :components ((:file "package")
                (:file "advent")
                (:file "day1")
-               (:file "day2")))
+               (:file "day2")
+               (:file "day3")))
