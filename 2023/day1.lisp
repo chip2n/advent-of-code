@@ -18,17 +18,6 @@
         while line
         summing (parse-calibration-value line)))
 
-(defvar *sample-a* (string-trim '(#\Newline) "
-1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet
-"))
-
-(test sample-a
-  (with-input-from-string (s *sample-a*)
-    (is (eql 142 (solve-a s)))))
-
 ;; * Part B
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -103,6 +92,19 @@ treb7uchet
         for res = (read-digits (string-chars line))
         summing (make-calibration-value
                  (mapcar (lambda (x) (parse-digit (concatenate 'string x))) res))))
+
+;; * Tests
+
+(defvar *sample-a* (string-trim '(#\Newline) "
+1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet
+"))
+
+(test sample-a
+  (with-input-from-string (s *sample-a*)
+    (is (eql 142 (solve-a s)))))
 
 (defvar *sample-b* (string-trim '(#\Newline) "
 two1nine

@@ -83,23 +83,6 @@
           for parts = (part-numbers-around scm x y)
           sum (reduce #'+ parts))))
 
-(defvar *sample-a* (string-trim '(#\Newline) "
-467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..
-"))
-
-(test sample-a
-  (with-input-from-string (s *sample-a*)
-    (is (eql 4361 (solve-a s)))))
-
 ;; * Part B
 
 (defun digit-at-p (scm x y)
@@ -117,6 +100,25 @@
           for parts = (part-numbers-around scm x y)
           when (= (length parts) 2)
             sum (reduce #'* parts))))
+
+;; * Tests
+
+(defvar *sample-a* (string-trim '(#\Newline) "
+467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..
+"))
+
+(test sample-a
+  (with-input-from-string (s *sample-a*)
+    (is (eql 4361 (solve-a s)))))
 
 (defvar *sample-b* (string-trim '(#\Newline) "
 467..114..

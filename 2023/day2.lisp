@@ -64,18 +64,6 @@
         when (all (mapcar #'round-legal-p rounds))
           summing id))
 
-(defvar *sample-a* (string-trim '(#\Newline) "
-Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
-"))
-
-(test sample-a
-  (with-input-from-string (s *sample-a*)
-    (is (eql 8 (solve-a s)))))
-
 ;; * Part B
 
 (defun hand-power (hand)
@@ -95,6 +83,20 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
         while line
         for (id . rounds) = (parse-dice-game line)
         summing (hand-power (min-round rounds))))
+
+;; * Tests
+
+(defvar *sample-a* (string-trim '(#\Newline) "
+Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+"))
+
+(test sample-a
+  (with-input-from-string (s *sample-a*)
+    (is (eql 8 (solve-a s)))))
 
 (defvar *sample-b* (string-trim '(#\Newline) "
 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
