@@ -19,49 +19,69 @@
                 :element-type 'character
                 :initial-contents contents)))
 
-(defun read-digits (schematic x y)
-  (unless (and (> y 0) (digit-char-p (aref schematic x (1- y))))
-    (loop for i from y
-          while (< i (car (array-dimensions schematic)))
-          for c = (aref schematic x i)
-          while (digit-char-p c)
-          collect c)))
+(defun schematic-width (scm)
+  (cadr (array-dimensions scm)))
 
-(defun extract-numbers (schematic)
-  "Extracts all part numbers along with their x,y coords and width:
-Example: ((467 0 0 3) (114 5 0 3) ...)"
-  (let ((result nil))
-    (destructuring-bind (n m) (array-dimensions schematic)
-      (loop for i from 0 below n do
-        (loop for j from 0 below m do
-          (a:when-let ((digits (read-digits schematic i j)))
-            (push (list (parse-integer (concatenate 'string digits)) j i (length digits)) result)))))
+(defun schematic-height (scm)
+  (car (array-dimensions scm)))
+
+(defun schematic-get (scm x y)
+  (let ((w (schematic-width scm))
+        (h (schematic-height scm)))
+    (unless (or (< x 0) (>= x w)
+                (< y 0) (>= y h))
+      (aref scm y x))))
+
+(defun part-numbers-around (scm x y)
+  (let ((nums nil))
+    (flet ((parse-mid (mid-x)
+             (push (read-digits scm mid-x y) nums))
+           (parse-row (row-y)
+             (if (digit-at-p scm x row-y)
+                 (push (read-digits scm x row-y) nums)
+                 (progn
+                   (push (read-digits scm (1- x) row-y) nums)
+                   (push (read-digits scm (1+ x) row-y) nums)))))
+      (parse-row (1- y))
+      (parse-mid (1- x))
+      (parse-mid (1+ x))
+      (parse-row (1+ y))
+      (->> (nreverse nums)
+           (remove-if-not #'identity)
+           (mapcar #'digits->int)))))
+
+(defun extract-symbol-chars (scm)
+  (let ((w (schematic-width scm))
+        (h (schematic-height scm))
+        (result nil))
+    (loop for y from 0 below h do
+      (loop for x from 0 below w do
+        (let ((c (schematic-get scm x y)))
+          (unless (or (digit-char-p c) (char= c #\Period))
+            (push (list c x y) result)))))
     (nreverse result)))
 
-(defun extract-in-rect (arr rx ry rw rh)
-  "Extract all characters inside provided rectangle."
-  (destructuring-bind (sh sw) (array-dimensions arr)
-    (let ((result nil))
-      (loop for y from ry below (+ ry rh) do
-        (loop for x from rx below (+ rx rw) do
-          (when (and (>= x 0) (< x sw)
-                     (>= y 0) (< y sh))
-            (push (aref arr y x) result))))
-      (nreverse result))))
+(defun read-digits (scm x y)
+  (unless (not (digit-at-p scm x y))
+    (let ((start x))
+      (loop for c = (schematic-get scm start y)
+            for prev = (schematic-get scm (1- start) y)
+            while (and (> start 0) (digit-char-p prev))
+            do (decf start))
+      (loop for i from start
+            for c = (schematic-get scm i y)
+            while (and c (digit-char-p c))
+            collect c))))
 
-(defun part-number-p (schematic num)
-  (destructuring-bind (n x y w) num
-    (declare (ignore n))
-    (->>
-     (extract-in-rect schematic (1- x) (1- y) (+ w 2) 3)
-     (remove-if (lambda (c) (or (digit-char-p c) (char= c #\Period)))))))
+(defun digits->int (digits)
+  (parse-integer (concatenate 'string digits)))
 
 (defun solve-a (stream)
-  (let* ((schematic (read-schematic stream))
-         (nums (extract-numbers schematic)))
-    (loop for num in nums
-          when (part-number-p schematic num)
-            sum (car num))))
+  (let* ((scm (read-schematic stream))
+         (syms (extract-symbol-chars scm)))
+    (loop for (c x y) in syms
+          for parts = (part-numbers-around scm x y)
+          sum (reduce #'+ parts))))
 
 (defvar *sample-a* (string-trim '(#\Newline) "
 467..114..
@@ -79,3 +99,38 @@ Example: ((467 0 0 3) (114 5 0 3) ...)"
 (test sample-a
   (with-input-from-string (s *sample-a*)
     (is (eql 4361 (solve-a s)))))
+
+;; * Part B
+
+(defun digit-at-p (scm x y)
+  (let ((c (schematic-get scm x y)))
+    (and c (digit-char-p c))))
+
+(defun extract-gears (scm)
+  (->> (extract-symbol-chars scm)
+       (remove-if-not (lambda (s) (char= (car s) #\Asterisk)))))
+
+(defun solve-b (stream)
+  (let* ((scm (read-schematic stream))
+         (gears (extract-gears scm)))
+    (loop for (_ x y) in gears
+          for parts = (part-numbers-around scm x y)
+          when (= (length parts) 2)
+            sum (reduce #'* parts))))
+
+(defvar *sample-b* (string-trim '(#\Newline) "
+467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..
+"))
+
+(test sample-b
+  (with-input-from-string (s *sample-b*)
+    (is (eql 467835 (solve-b s)))))
