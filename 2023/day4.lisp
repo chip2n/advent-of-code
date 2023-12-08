@@ -29,10 +29,7 @@
     (nreverse matches)))
 
 (defun card-points (card)
-  (let ((points 0))
-    (loop for i from 0 below (length (card-matches card))
-          do (setf points (if (= points 0) 1 (* points 2))))
-    points))
+  (truncate (expt 2 (1- (length (card-matches card))))))
 
 (defun solve-a (stream)
   (loop for card = (parse-card stream)
