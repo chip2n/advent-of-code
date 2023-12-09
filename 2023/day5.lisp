@@ -69,14 +69,106 @@
         (conversions nil))
     (loop for (type . ranges) in (cadr almanac)
           do (push (cons type (make-conversion ranges)) conversions))
+
     (setf conversions (nreverse conversions))
 
     (loop for seed in (car almanac)
           minimize (seed->location conversions seed))))
 
+;; * Part B
+
+(defun make-range (start end) (cons start end))
+(defun range-start (r) (car r))
+(defun range-end (r) (cdr r))
+
+(defun between-p (n min max &key inclusive-p)
+  (and (or (< n max) (and inclusive-p (= n max)))
+       (>= n min)))
+
+(defun range-contains-p (range n &key inclusive-p)
+  (between-p n (range-start range) (range-end range) :inclusive-p inclusive-p))
+
+(defun range-intersection (r1 r2)
+  (let ((start (max (range-start r1) (range-start r2)))
+        (end (min (range-end r1) (range-end r2))))
+    (when (> (- end start) 0)
+      (make-range start end))))
+
+(defun resolve-range (seed-range map)
+  (destructuring-bind (dst src len) map
+    (let* ((src-range (make-range src (+ src len)))
+           (intersection (range-intersection seed-range src-range)))
+      (when intersection
+        (list intersection (- dst src))))))
+
+(defun resolve-ranges (seed-range maps)
+  (remove-if-not #'identity
+                 (mapcar (lambda (m) (resolve-range seed-range m)) maps)))
+
+(defun range-diff (r1 r2)
+  (let ((s1 (range-start r1))
+        (e1 (range-end r1))
+        (s2 (range-start r2))
+        (e2 (range-end r2)))
+    (let ((p1 (when (and (> s2 s1) (range-contains-p r1 s2)) s2))
+          (p2 (when (and (< e2 e1) (range-contains-p r1 e2 :inclusive-p t)) e2)))
+      (cond
+        ((>= s1 e2) (list r1))
+        ((<= e1 s2) (list r1))
+        ((and p1 p2) (list (make-range s1 p1)
+                           (make-range p2 e1)))
+        (p1 (list (make-range s1 p1)))
+        (p2 (list (make-range p2 e1)))))))
+
+(defun range-diff-multi (r1 ranges)
+  (if ranges
+      (let ((new (range-diff r1 (car ranges))))
+        (loop for result in new
+              nconc (range-diff-multi result (cdr ranges))))
+      (list r1)))
+
+(defun resolve-seed-range (seed-range maps)
+  (when maps
+    (let ((result nil))
+      (loop for (range offset) in (resolve-ranges seed-range (car maps))
+            do (push (list range offset) result))
+      (setf result (nreverse result))
+      (let ((rest-ranges
+              (if result
+                  (remove-if-not #'identity
+                                 (range-diff-multi seed-range
+                                                   (mapcar #'car result)))
+                  (list seed-range))))
+        (concatenate 'list
+                     result
+                     (mapcar (lambda (r) (list r 0)) rest-ranges))))))
+
+(defun seed-min-location (seed-range maps)
+  (if maps
+      (let ((ranges (resolve-seed-range seed-range maps)))
+        (loop for (range offset) in ranges
+              minimizing (seed-min-location
+                          (make-range (+ (range-start range) offset)
+                                      (+ (range-end range) offset))
+                          (cdr maps))))
+      (range-start seed-range)))
+
+(defun chunk-seeds (seeds)
+  (when seeds
+    (cons
+     (cons (car seeds) (cadr seeds))
+     (chunk-seeds (cddr seeds)))))
+
+(defun solve-b (stream)
+  (let* ((almanac (read-almanac stream))
+         (maps (mapcar #'cdr (cadr almanac))))
+    (loop for (start . len) in (chunk-seeds (car almanac))
+          for seed-range = (make-range start (+ start len))
+          minimize (seed-min-location seed-range maps))))
+
 ;; * Tests
 
-(defvar *sample-a* (string-trim '(#\Newline) "
+(defvar *sample* (string-trim '(#\Newline) "
 seeds: 79 14 55 13
 
 seed-to-soil map:
@@ -113,5 +205,9 @@ humidity-to-location map:
 "))
 
 (test sample-a
-  (with-input-from-string (s *sample-a*)
+  (with-input-from-string (s *sample*)
     (is (eql 35 (solve-a s)))))
+
+(test sample-b
+  (with-input-from-string (s *sample*)
+    (is (eql 46 (solve-b s)))))
