@@ -25,14 +25,30 @@
   (loop for s in (parse-input stream)
         sum (predict-seq s)))
 
+;; * Part B
+
+(defun predict-seq2 (s)
+  (if (every #'zero-p s)
+      0
+      (let ((child-seq (gen-child-seq s)))
+        (- (car s) (predict-seq2 child-seq)))))
+
+(defun solve-b (stream)
+  (loop for s in (parse-input stream)
+        sum (predict-seq2 s)))
+
 ;; * Tests
 
-(defvar *sample-a* (string-trim '(#\Newline) "
+(defvar *sample* (string-trim '(#\Newline) "
 0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45
 "))
 
 (test sample-a
-  (with-input-from-string (s *sample-a*)
+  (with-input-from-string (s *sample*)
     (is (eql 114 (solve-a s)))))
+
+(test sample-b
+  (with-input-from-string (s *sample*)
+    (is (eql 2 (solve-b s)))))
