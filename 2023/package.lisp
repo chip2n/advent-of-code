@@ -49,3 +49,9 @@
   (:local-nicknames (#:a #:alexandria))
   (:export #:solve-a
            #:solve-b))
+
+(defpackage #:advent.day9
+  (:use #:cl #:fiveam #:arrows)
+  (:local-nicknames (#:a #:alexandria))
+  (:export #:solve-a
+           #:solve-b))
