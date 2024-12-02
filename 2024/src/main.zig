@@ -18,6 +18,11 @@ pub fn main() !void {
         const result = try day1b(allocator, @embedFile("input1"));
         try out.print("Day 1b: {}\n", .{result});
     }
+
+    { // Day 2a
+        const result = try day2a(allocator, @embedFile("input2"));
+        try out.print("Day 2a: {}\n", .{result});
+    }
 }
 
 // * Day 1
@@ -72,6 +77,43 @@ pub fn day1b(allocator: std.mem.Allocator, input: []const u8) !u32 {
 test "day 1" {
     try testSolution(day1a, "input1-test", 11);
     try testSolution(day1b, "input1-test", 31);
+}
+
+// * Day 2
+
+pub fn day2a(allocator: std.mem.Allocator, input: []const u8) !u32 {
+    _ = allocator;
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    var result: u32 = 0;
+    while (lines.next()) |line| {
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+        var prev: ?u32 = null;
+        var increasing: ?bool = null;
+        while (tokens.next()) |token| {
+            const n = try parseInt(token);
+            if (prev) |p| {
+                if (increasing == null) {
+                    increasing = p < n;
+                }
+                if (p == n) break;
+                if (increasing.?) {
+                    if (p > n) break;
+                    if (n - p > 3) break;
+                } else {
+                    if (p < n) break;
+                    if (p - n > 3) break;
+                }
+            }
+            prev = n;
+        } else {
+            result += 1;
+        }
+    }
+    return result;
+}
+
+test "day2a" {
+    try testSolution(day2a, "input2-test", 2);
 }
 
 // * Utils
