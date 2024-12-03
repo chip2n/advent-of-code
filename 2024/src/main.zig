@@ -23,6 +23,11 @@ pub fn main() !void {
         const result = try day2a(allocator, @embedFile("input2"));
         try out.print("Day 2a: {}\n", .{result});
     }
+
+    { // Day 2b
+        const result = try day2b(allocator, @embedFile("input2"));
+        try out.print("Day 2b: {}\n", .{result});
+    }
 }
 
 // * Day 1
@@ -112,8 +117,59 @@ pub fn day2a(allocator: std.mem.Allocator, input: []const u8) !u32 {
     return result;
 }
 
+pub fn day2b(allocator: std.mem.Allocator, input: []const u8) !u32 {
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    var result: u32 = 0;
+
+    const Helpers = struct {
+        fn validate(nums: []const u32, skip: usize) bool {
+            var prev: ?u32 = null;
+            var increasing: ?bool = null;
+            for (nums, 0..) |n, i| {
+                if (i == skip) continue;
+                if (prev) |p| {
+                    if (increasing == null) {
+                        increasing = p < n;
+                    }
+                    if (p == n) break;
+                    if (increasing.?) {
+                        if (p > n) break;
+                        if (n - p > 3) break;
+                    } else {
+                        if (p < n) break;
+                        if (p - n > 3) break;
+                    }
+                }
+                prev = n;
+            } else {
+                return true;
+            }
+            return false;
+        }
+    };
+
+    while (lines.next()) |line| {
+        var token_iter = std.mem.tokenizeScalar(u8, line, ' ');
+        var nums = std.ArrayList(u32).init(allocator);
+        while (token_iter.next()) |token| {
+            const n = try parseInt(token);
+            try nums.append(n);
+        }
+        for (nums.items, 0..) |_, i| {
+            const valid = Helpers.validate(nums.items, i);
+            if (valid) {
+                result += 1;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
 test "day2a" {
     try testSolution(day2a, "input2-test", 2);
+    try testSolution(day2b, "input2-test", 4);
 }
 
 // * Utils
