@@ -33,11 +33,11 @@ pub fn main() !void {
 // * Day 1
 
 pub fn day1a(allocator: std.mem.Allocator, input: []const u8) !u32 {
-    var lines = std.mem.tokenizeAny(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var l1 = std.ArrayList(u32).init(allocator);
     var l2 = std.ArrayList(u32).init(allocator);
     while (lines.next()) |line| {
-        var tokens = std.mem.tokenizeAny(u8, line, " ");
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
         try l1.append(try parseInt(tokens.next().?));
         try l2.append(try parseInt(tokens.next().?));
     }
@@ -53,11 +53,11 @@ pub fn day1a(allocator: std.mem.Allocator, input: []const u8) !u32 {
 }
 
 pub fn day1b(allocator: std.mem.Allocator, input: []const u8) !u32 {
-    var lines = std.mem.tokenizeAny(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var l1 = std.ArrayList(u32).init(allocator);
     var l2 = std.ArrayList(u32).init(allocator);
     while (lines.next()) |line| {
-        var tokens = std.mem.tokenizeAny(u8, line, " ");
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
         try l1.append(try parseInt(tokens.next().?));
         try l2.append(try parseInt(tokens.next().?));
     }
