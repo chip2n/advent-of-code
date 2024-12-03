@@ -167,7 +167,7 @@ pub fn day2b(allocator: std.mem.Allocator, input: []const u8) !u32 {
     return result;
 }
 
-test "day2a" {
+test "day 2" {
     try testSolution(day2a, "input2-test", 2);
     try testSolution(day2b, "input2-test", 4);
 }
