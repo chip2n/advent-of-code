@@ -28,6 +28,11 @@ pub fn main() !void {
         const result = try day2b(allocator, @embedFile("input2"));
         try out.print("Day 2b: {}\n", .{result});
     }
+
+    { // Day 3a
+        const result = try day3a(allocator, @embedFile("input3"));
+        try out.print("Day 3a: {}\n", .{result});
+    }
 }
 
 // * Day 1
@@ -170,6 +175,59 @@ pub fn day2b(allocator: std.mem.Allocator, input: []const u8) !u32 {
 test "day 2" {
     try testSolution(day2a, "input2-test", 2);
     try testSolution(day2b, "input2-test", 4);
+}
+
+// * Day 3
+
+pub fn day3a(allocator: std.mem.Allocator, input: []const u8) !u32 {
+    _ = allocator; // autofix
+
+    var result: u32 = 0;
+
+    var parser: struct {
+        curr: usize = 0,
+        buf: []const u8,
+
+        fn readMul(p: *@This()) !u32 {
+            try p.eat("mul(");
+            const a = try p.num();
+            try p.eat(",");
+            const b = try p.num();
+            try p.eat(")");
+            return a * b;
+        }
+
+        fn eat(p: *@This(), s: []const u8) !void {
+            if (!std.mem.startsWith(u8, p.buf[p.curr..], s)) return error.InvalidInput;
+            p.curr += s.len;
+        }
+
+        fn num(p: *@This()) !u32 {
+            if (!std.ascii.isDigit(p.buf[p.curr])) return error.InvalidInput;
+            var end = p.curr;
+            while (std.ascii.isDigit(p.buf[end])) {
+                end += 1;
+            }
+            const n = try parseInt(p.buf[p.curr..end]);
+            p.curr = end;
+            return n;
+        }
+    } = .{ .buf = input };
+
+    while (parser.curr < parser.buf.len) {
+        const i = parser.curr;
+        const n = parser.readMul() catch {
+            parser.curr = i + 1;
+            continue;
+        };
+        result += n;
+    }
+
+    return result;
+}
+
+test "day3a" {
+    try testSolution(day3a, "input3-test", 161);
 }
 
 // * Utils
